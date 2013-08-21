@@ -1,0 +1,40 @@
+{% extends "main/home.html" %}
+{% block title %}Contact Form{% endblock %}
+
+{% block content %}
+  <div class="grid col-460">
+    <div id="container">
+      <h1>Ekadanta Projects</h1>
+      <div id="content">
+	  <h2> Contact Us</h2>
+	  {% if form.errors %}
+	  <p class="error">
+	    Please correct the error{{ form.errors|pluralize }} below.</p>
+	  {% endif %}
+	  <form action="" method="post">
+	    <div>
+      	      {{ form.subject.errors }}
+	      <label for="id_subject">Subject:</label>
+	      {{ form.subject }}
+	      <input type="text">
+	    </div>
+	    <div>
+	      {{ form.email.errors }}
+	      <label for="id_email">Your e-mail address:</label>
+	      {{ form.email }}
+	    <input type="text">
+	    </div>
+	    <div>
+	      {{ form.message.errors }}
+	      <label for="id_message">Message:</label>
+	      {{ form.message }}
+	      <input type="text">
+	    </div>
+	    {% csrf_token %}
+	    <input type="submit" value="submit">
+	  </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

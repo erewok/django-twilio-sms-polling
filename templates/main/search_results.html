@@ -1,0 +1,25 @@
+{% extends "main/home.html" %}
+{% block title %}Search Results {% endblock %}
+
+{% block content %}
+<p> You searched for <strong>{{ query }} </strong></p>
+
+<div class="grid">
+<div class="col-380">
+{% if books %}
+<p>Found {{ books|length }} book{{ books|pluralize }}.</p>
+<ul>
+  {% for book in books %}
+  <li>{{ book.title }}</li>
+  {% endfor %}
+</ul>
+{% else %}
+<p>No books matched your search criteria</p>
+{% endif %}
+</div>
+<div>
+{% endblock %}
+{% block footer %}
+<p>Something extra at the bottom
+{% endblock %}
+

@@ -1,0 +1,23 @@
+{% extends "main/home.html" %}
+{% block title %}Contact Form{% endblock %}
+
+{% block content %}
+
+<div class="wrapper">
+<div class="grid">
+  {% if errors %}
+    <ul>
+      {% for error in errors %}
+      <li class="error">{{ error }} </li>
+      {% endfor %}
+    </ul>
+      
+  {% endif %}
+
+<div class="col-380" style="max-width:30%;">
+<p>Thanks for contacting us.</p>
+</div>
+</div>
+</div>
+{% include "main/footer.html" %}
+{% endblock %}

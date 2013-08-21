@@ -1,0 +1,27 @@
+{% extends "main/home.html" %}
+{% block title %}Search Form {% endblock %}
+
+{% block content %}
+
+<div class="grid">
+  {% if errors %}
+    <ul>
+      {% for error in errors %}
+      <li class="error">{{ error }} </li>
+      {% endfor %}
+    </ul>
+      
+  {% endif %}
+
+<div class="col-380" style="max-width:40%;">
+<form action="" method="get">
+  <input type="text" name="q">
+  <input type="submit" value="search">
+</form>
+</div>
+<div>
+{% endblock %}
+{% block footer %}
+<p>Something extra at the bottom
+{% endblock %}
+

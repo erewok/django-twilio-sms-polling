@@ -1,0 +1,73 @@
+from django.db import models
+
+### PRIMARY DATA ###
+
+class Receiver(models.Model):
+    phone_number = models.CharField(max_length=17, primary_key=True, verbose_name='phone number')
+    first_name = models.CharField(max_length=30)
+    last_name = models.CharField(max_length=40)
+    age = models.PositiveSmallIntegerField(null=True, blank=True)
+    city = models.CharField(max_length=50, null=True, blank=True)
+    timezone = models.CharField(max_length=30, null=True, blank=True)
+
+    def __unicode__(self):
+        return self.phone_number
+
+    def __str__(self):
+        return "%s" % self.phone_number
+
+
+### SMS LOGIC DATA ###
+
+class SentMessage(models.Model):
+    msg_id = models.CharField(max_length=50)
+    to_number = models.ForeignKey(Receiver)
+    conv_id = models.CharField(max_length=50)
+    message_body = models.TextField()
+    status = models.CharField(max_length=20)
+    timestamp = models.DateTimeField()
+
+    def __unicode__(self):
+        return self.msg_id
+
+    def __str__(self):
+        return "%s" % self.msg_id
+
+class ReceivedMessage(models.Model):
+    msg_id = models.CharField(max_length=60)
+    from_number = models.ForeignKey(Receiver)
+    conv_id = models.ForeignKey(SentMessage)
+    message_body = models.TextField()
+    timestamp = models.DateTimeField()
+
+    def __unicode__(self):
+        return self.msg_id
+
+    def __str__(self):
+        return "%s" % self.msg_id
+
+### WEB INTERFACE MODELS ###
+
+class Messages(models.Model):
+    init_schedule_time = models.DateTimeField(null=True, blank=True, verbose_name="First Send Time")
+    send_once = models.BooleanField()
+    send_only_during_daytime = models.BooleanField(verbose_name="Daytime Only")
+    send_interval = models.PositiveSmallIntegerField(null=True, blank=True)
+    stop_time = models.DateTimeField(null=True, blank=True, verbose_name="Do not send after")
+    recipients = models.ManyToManyField(Receiver)
+    message_body = models.TextField(null=True, blank=True, verbose_name="Message Body")
+    send_is_on = models.BooleanField(verbose_name="Activate Sending?")
+
+class ResponseMessages(models.Model):
+    active = models.BooleanField()
+    response_message = models.CharField(max_length=160)
+
+    def __unicode__(self):
+        return "%s %s" % (self.response_message, self.active)
+
+## ACCOUNT INFORMATION ##
+
+class TwilioAcct(models.Model):
+    account_sid = models.CharField(max_length=40)
+    auth_token = models.CharField(max_length=40)
+    our_number = models.CharField(max_length=17)

@@ -1,0 +1,56 @@
+from django.shortcuts import render_to_response
+from django.http import HttpResponse
+from django.views.decorators.csrf import csrf_exempt, csrf_protect
+from django.http import Http404
+
+
+from sms_app.models import ResponseMessages, TwilioAcct
+from sms_app.get_messages import get_messages
+# from sms_app.forms import ReceivedMessageForm
+
+def sms_main(request):
+   return render_to_response('sms/main.html')
+
+@csrf_exempt
+def sms_response(request):
+   '''Retrieve and execute the TwiML at this URL via the selected HTTP method (GET)
+   when this application receives a message.'''
+   twil_account = TwilioAcct.objects.get(id=1L)
+   if request.method == 'POST':
+      pass # form = ReceivedMessageForm(request.POST)
+   # assert form.is_valid()
+   if request.method == 'GET':
+      if 'AccountSid' in request.GET and request.GET['AccountSid'] == twil_account.account_sid:
+         get_messages.log_request(request)
+         text_response = ""
+         for item in ResponseMessages.objects.all():
+            if item.active:
+               text_response += item.response_message
+         return render_to_response('sms/response.xml', {'response' : text_response})
+      else:
+        raise Http404
+
+def sms_fallback(request):
+   '''Retrieve and execute the TwiML at this URL when the Messaging Request URL
+   above can\'t be reached or there is a runtime exception.'''
+   ##THIS doesn't attempt to log the request##
+   ## IT (will eventually) initiate error handling to try to track down the
+   ## reason we are falling back here
+   text_response = ""
+   for item in ResponseMessages.objects.all():
+      if item.active:
+         text_response += item.response_message
+         
+   return render_to_response('sms/fallback.xml', {'response' : text_response})
+
+def sms_status_callback(request):
+   '''Make a POST request to this URL when a REST API request to send an outgoing
+   message has either succeeded or failed'''
+   pass
+
+
+def sms_send(request):
+   pass
+
+def sms_receive(request):
+   pass
