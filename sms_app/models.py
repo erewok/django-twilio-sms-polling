@@ -16,7 +16,6 @@ class Receiver(models.Model):
     def __str__(self):
         return "%s" % self.phone_number
 
-
 ### SMS LOGIC DATA ###
 
 class SentMessage(models.Model):
@@ -52,11 +51,19 @@ class Messages(models.Model):
     init_schedule_time = models.DateTimeField(null=True, blank=True, verbose_name="First Send Time")
     send_once = models.BooleanField()
     send_only_during_daytime = models.BooleanField(verbose_name="Daytime Only")
-    send_interval = models.PositiveSmallIntegerField(null=True, blank=True)
+    send_interval = models.PositiveSmallIntegerField(null=True, blank=True,
+                                                     verbose_name="Interval (hrs): Leave blank for random interval")
     stop_time = models.DateTimeField(null=True, blank=True, verbose_name="Do not send after")
     recipients = models.ManyToManyField(Receiver)
     message_body = models.TextField(null=True, blank=True, verbose_name="Message Body")
     send_is_on = models.BooleanField(verbose_name="Activate Sending?")
+
+    def __unicode__(self):
+        return "Message object: %s, Send Activated: %s" % (self.id, self.send_is_on)
+
+    class Meta:
+        verbose_name = u"Messages"
+        verbose_name_plural = u"Messages"
 
 class ResponseMessages(models.Model):
     active = models.BooleanField()
@@ -71,3 +78,13 @@ class TwilioAcct(models.Model):
     account_sid = models.CharField(max_length=40)
     auth_token = models.CharField(max_length=40)
     our_number = models.CharField(max_length=17)
+
+## MESSAGE SCHEDULING LOGIC ##
+
+class Scheduler(models.Model):
+    message_id = models.OneToOneField(Messages)
+    send_at = models.DateTimeField()
+    next_send = models.DateTimeField()
+
+    def __unicode__(self):
+        return "Scheduled: %s" % self.message_id
