@@ -10,7 +10,7 @@ class ReceiverAdmin(admin.ModelAdmin):
     form = ReceiverForm
 
 class MessagesAdmin(admin.ModelAdmin):
-    list_display = ('init_schedule_time','send_once', 'send_interval', 'stop_time', 'message_body')
+    list_display = ('init_schedule_time','send_is_on', 'send_once', 'send_interval', 'stop_time', 'message_body')
     filter_horizontal = ('recipients',)
     # Fields: init_schedule_time, send_once, send_only_during_daytime, send_interval,
     # stop_time, recipients, message_body

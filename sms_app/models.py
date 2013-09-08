@@ -48,15 +48,15 @@ class ReceivedMessage(models.Model):
 ### WEB INTERFACE MODELS ###
 
 class Messages(models.Model):
-    init_schedule_time = models.DateTimeField(null=True, blank=True, verbose_name="First Send Time")
+    init_schedule_time = models.DateTimeField(null=True, blank=True, verbose_name="Poll Start Time")
     send_once = models.BooleanField()
     send_only_during_daytime = models.BooleanField(verbose_name="Daytime Only")
     send_interval = models.PositiveSmallIntegerField(null=True, blank=True,
                                                      verbose_name="Interval (hrs): Leave blank for random interval")
-    stop_time = models.DateTimeField(null=True, blank=True, verbose_name="Do not send after")
+    stop_time = models.DateTimeField(null=True, blank=True, verbose_name="Message Expiry")
     recipients = models.ManyToManyField(Receiver)
     message_body = models.TextField(null=True, blank=True, verbose_name="Message Body")
-    send_is_on = models.BooleanField(verbose_name="Activate Sending?")
+    send_is_on = models.BooleanField(verbose_name="Message Activated")
 
     def __unicode__(self):
         return "Message object: %s, Send Activated: %s" % (self.id, self.send_is_on)
@@ -64,7 +64,7 @@ class Messages(models.Model):
     class Meta:
         verbose_name = u"Messages"
         verbose_name_plural = u"Messages"
-
+        
 class ResponseMessages(models.Model):
     active = models.BooleanField()
     response_message = models.CharField(max_length=160)
