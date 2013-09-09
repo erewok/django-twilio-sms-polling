@@ -1,9 +1,9 @@
 from django.test import TestCase
+from django.utils import timezone
+from datetime import timedelta
 
 from sms_app.models import Scheduler, Messages, Receiver
 from sms_app.tasks import cleanup_expired, schedule_new_messages, calculate_next_send
-from django.utils import timezone
-from datetime import timedelta
 
 
 class SchedulerTesting(TestCase):
@@ -12,6 +12,11 @@ class SchedulerTesting(TestCase):
         self.now = timezone.now()
         self.later = self.now + timedelta(hours=5)
         self.earlier = self.now - timedelta(hours=5)
+        self.recvr = Receiver(phone_number='+16195559088', first_name='gym', last_name='bag')
+        self.recvr.save()
+
+    def test_data_insert(self):
+        pass
 
     def test_next_send_calculator(self):
         # Goal: next_send should be in the future
@@ -41,10 +46,7 @@ class SchedulerTesting(TestCase):
         # Build a test-message where send_true and msg.stop_time is in the past
         # 1a)  Manually put this message in the scheduler
         # Goals: on cleanup make sure it a) is deleted from schedule and b) that msg.send_is_on is set to false
-        recvr = Receiver(phone_number='+16195559088', first_name='gym', last_name='bag')
-        recvr.save()
-
-        test_msg_clean = Messages(init_schedule_time =self.now,
+        test_msg_clean = Messages(init_schedule_time = self.now,
                             send_only_during_daytime = True,
                             stop_time = self.earlier,
                             send_is_on = True)
@@ -53,7 +55,11 @@ class SchedulerTesting(TestCase):
                                   send_at = test_msg_clean.init_schedule_time,
                                   next_send = self.later)
         new_sched_msg.save()
+        self.assertTrue(
+            Scheduler.objects.filter(message_id=new_sched_msg.message_id).exists())
+
         cleanup_expired()
+
         if test_msg_clean.send_is_on is True:
             self.fail("Message is still set to send")
             # this one continues to fail
