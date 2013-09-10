@@ -41,10 +41,10 @@ def cleanup_expired():
     now = timezone.now()
     expired_msgs = Messages.objects.filter(
         stop_time__lt=now).filter(
-            send_is_on=True) # test this too!
+            send_is_on=True)
 
     for msg in expired_msgs:
-        msg.send_is_on = False ## test this: keeps failing unit testing!
+        msg.send_is_on = False ## test this: keeps failing unit testing but it works in shell...?
         msg.save()
         if Scheduler.objects.filter(message_id=msg).exists():
             Scheduler.objects.get(message_id=msg).delete()
@@ -52,7 +52,11 @@ def cleanup_expired():
     Scheduler.objects.filter(message_id__send_is_on=False).delete()
 
 def schedule_new_messages():
-    """date_format = "%d/%m/%Y %H:%M:%S"""
+    """schedule_new_messages looks for messages with all of the following constraints:
+    send_is_on=True,
+    stop_time is in the future,
+    scheduler__mesage_id=None (no Scheduler Entry for message)
+    It then schedules those messages in the Scheduler table."""
     now = timezone.now()
     unscheduled_msgs = Messages.objects.filter(
         send_is_on=True
@@ -71,7 +75,6 @@ def schedule_new_messages():
                                       send_at = send_at_time,
                                       next_send = next_send_time)
         scheduled_msg.save()
-
 
     ## major problem: it sends in UTC: needs to send with respect to user's local timezone OR
     ## needs to know user's timezone and convert to UTC

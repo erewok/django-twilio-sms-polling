@@ -12,11 +12,13 @@ class SchedulerTesting(TestCase):
         self.now = timezone.now()
         self.later = self.now + timedelta(hours=5)
         self.earlier = self.now - timedelta(hours=5)
+        self.almost_night = self.now.replace(hour=19)
+
+    def test_data_insert(self):
         self.recvr = Receiver(phone_number='+16195559088', first_name='gym', last_name='bag')
         self.recvr.save()
 
-    def test_data_insert(self):
-        pass
+ 
 
     def test_next_send_calculator(self):
         # Goal: next_send should be in the future
@@ -25,13 +27,13 @@ class SchedulerTesting(TestCase):
 
         #####################################################################
         # Goal: if day=True, it shouldn't return a time between 8pm and 7am...
-        almost_night = self.now.replace(hour=19)
+
         next_send_wInterval = calculate_next_send(self.now, interval=4, day=True)
         next_send_randomInterval = calculate_next_send(self.now, interval=False, day=True)
 
         # Goal: random or set interval are both set to future
-        self.assertLess(almost_night, next_send_wInterval)
-        self.assertLess(almost_night, next_send_randomInterval)
+        self.assertLess(self.almost_night, next_send_wInterval)
+        self.assertLess(self.almost_night, next_send_randomInterval)
 
         # Goal: It's not set to an hour after 8pm
         self.assertLess(next_send_wInterval.hour, 20)
@@ -48,12 +50,15 @@ class SchedulerTesting(TestCase):
         # Goals: on cleanup make sure it a) is deleted from schedule and b) that msg.send_is_on is set to false
         test_msg_clean = Messages(init_schedule_time = self.now,
                             send_only_during_daytime = True,
-                            stop_time = self.earlier,
+                            stop_time = self.later,
                             send_is_on = True)
         test_msg_clean.save()
-        new_sched_msg = Scheduler(message_id = test_msg_clean,
-                                  send_at = test_msg_clean.init_schedule_time,
-                                  next_send = self.later)
+        schedule_new_messages()
+        self.assertTrue(Scheduler.objects.get(message_id=test_msg_clean).exists())
+
+        test_msg_clean.stop_time = self.earlier
+        test_msg_clean.save()
+
         new_sched_msg.save()
         self.assertTrue(
             Scheduler.objects.filter(message_id=new_sched_msg.message_id).exists())
@@ -62,9 +67,9 @@ class SchedulerTesting(TestCase):
 
         if test_msg_clean.send_is_on is True:
             self.fail("Message is still set to send")
-            # this one continues to fail
+
         with self.assertRaises(Scheduler.DoesNotExist):
-            Scheduler.objects.get(message_id=test_msg_clean).exists()
+            test_msg_clean.exists()
 
     def test_scheduler(self):
         # 1) that send_once has a next_send set to the past
