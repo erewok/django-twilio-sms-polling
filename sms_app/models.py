@@ -8,7 +8,7 @@ class Receiver(models.Model):
     last_name = models.CharField(max_length=40)
     age = models.PositiveSmallIntegerField(null=True, blank=True)
     city = models.CharField(max_length=50, null=True, blank=True)
-    timezone = models.CharField(max_length=30, null=True, blank=True)
+    timezone = models.SmallIntegerField(verbose_name="UTC Offset")
 
     def __unicode__(self):
         return self.phone_number

@@ -3,8 +3,8 @@ from django import forms
 from sms_app.models import Receiver, Messages, ResponseMessages, SentMessage, ReceivedMessage
 
 class ReceiverForm(forms.ModelForm):
-    phone_number = forms.RegexField(regex=r'^\+?1?\d{9,15}$')
-
+    phone_number = forms.RegexField(regex=r'^\+?1?\d{9,15}$', 
+                                    error_message = ("Phone number must be entered in the format: \'+##########\'. Up to 15 digits allowed."))
 class ReceiverAdmin(admin.ModelAdmin):
     list_display = ('phone_number', 'first_name', 'last_name', 'age', 'city', 'timezone')
     form = ReceiverForm
