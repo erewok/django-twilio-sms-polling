@@ -49,6 +49,14 @@ class SchedulerTesting(TestCase):
         self.assertLess(next_send_once, self.now)
         ######################################################################
 
+    def test_utc_offset_calculatr(self):
+        utc_offset1 = -8
+        utc_offset2 = -5
+        utc_offset3 = 4
+        utc_at_offset_time = self.now - timedelta(hours=utc_offset1)
+        offset_next_send = calculate_next_send(utc_at_offset_time, interval=False, day=True, UTC_offset=utc_offset1):
+
+
     def test_scheduler(self):
         # One should be scheduled because its stop_time is in the future
         self.test_msg_one = Messages(init_schedule_time = self.now,
@@ -80,10 +88,10 @@ class SchedulerTesting(TestCase):
         scheduled_three = Scheduler.objects.get(message_id=self.test_msg_three)
         self.assertLess(scheduled_three.next_send, self.now)
         # FAILED ONCE AND THEN NOT AGAIN?#
-        
+
         # should not insert second message where stop time is earlier than now
         self.assertFalse(Scheduler.objects.filter(message_id=self.test_msg_two).exists())
-        
+
 
     def test_cleanup(self):
         # Build a test-message where send_true and msg.stop_time is in the past

@@ -12,7 +12,7 @@ dj-static==0.0.5
 django-celery==3.0.21
 django-celery-with-redis==3.0
 django-export==0.0.4
-django-object-tools==0.0.7
+git+https://github.com/pellagic-puffbomb/django-object-tools.git#egg=django-object-tools
 django-snippetscream==0.0.7
 django-toolbelt==0.0.1
 gunicorn==17.5

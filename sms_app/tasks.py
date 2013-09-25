@@ -5,21 +5,31 @@ import random
 from celery.task import task
 from datetime import timedelta
 from django.utils import timezone
-from sms_app.models import Messages, Scheduler
+from sms_app.models import Messages, Scheduler, Receiver
 from sms_app.send_messages.send_messages import send_sms
 
 
-def calculate_next_send(send_at, interval=False, day=True):
+def calculate_next_send(send_at, interval=False, day=True, UTC_offset=0):
     if not interval:
         my_rand_int = random.randrange(45, 240, 15)
         next_send = send_at + timedelta(minutes=my_rand_int)
     else:
         next_send = send_at + timedelta(hours=interval)
 
-    while next_send.hour < 7 or next_send.hour >= 20:
-        my_rand_int = random.randrange(600, 1020) # switch from interval to random here...
-        # make sure to correct on the next send, next day
-        next_send = send_at + timedelta(minutes=my_rand_int)
+    next_send -= timedelta(hours=UTC_offset) # if it's a negative number this can go into the next day...
+
+    if day:
+        utc_morning = 7 ## probably need to work with more than integers here...
+        utc_night = 20
+        offset_morning = utc_morning - UTC_offset
+        offset_night = utc_night - UTC_offset
+
+        ## now you need to adjust for if either number is less than one or greater than 24
+
+        While next_send.hour < morning or next_send.hour >= night:
+            my_rand_int = random.randrange(600, 1020)
+            next_send = send_at + timedelta(minutes=my_rand_int)
+
     return next_send
 
 def get_send_interval(msg_object):
