@@ -3,7 +3,8 @@ from django.utils import timezone
 from datetime import timedelta
 
 from sms_app.models import Scheduler, Messages, Receiver
-from sms_app.tasks import cleanup_expired, schedule_new_messages, calculate_next_send, get_send_interval
+from sms_app.tasks import cleanup_expired, schedule_new_messages
+from sms_app.tasks import calculate_next_send, get_send_interval
 
 
 class SchedulerTesting(TestCase):
@@ -15,7 +16,9 @@ class SchedulerTesting(TestCase):
         self.almost_night = self.now.replace(hour=19)
 
     def test_data_insert(self):
-        self.recvr_one = Receiver(phone_number='+16195559088', first_name='gym', last_name='bag')
+        self.recvr_one = Receiver(phone_number='+16195559088',
+                                  first_name='gym',
+                                  last_name='bag')
         self.recvr_one.save()
 
     def test_next_send_calculator(self):
@@ -40,14 +43,15 @@ class SchedulerTesting(TestCase):
         self.assertGreaterEqual(next_send_wInterval.hour, 7)
         self.assertGreaterEqual(next_send_randomInterval.hour, 7)
 
-        ######################################################################
-        # Goal: if you pass in a negative interval, it should return a next_send earlier than this one
+        #############################################################
+        # Goal: if you pass in a negative interval,
+        # it should return a next_send earlier than this one
         next_send_day_once = calculate_next_send(self.now, interval=-5, day=True)
         next_send_once = calculate_next_send(self.now, interval=-5, day=False)
 
         self.assertLess(next_send_day_once, self.now)
         self.assertLess(next_send_once, self.now)
-        ######################################################################
+        #############################################################
 
     def test_utc_offset_calculatr(self):
         utc_offset1 = -8
@@ -96,7 +100,8 @@ class SchedulerTesting(TestCase):
     def test_cleanup(self):
         # Build a test-message where send_true and msg.stop_time is in the past
         # 1a)  Manually put this message in the scheduler
-        # Goals: on cleanup make sure it a) is deleted from schedule and b) that msg.send_is_on is set to false
+        # Goals: on cleanup make sure it a) is deleted from schedule,
+        # and b) that msg.send_is_on is set to false
         test_msg_clean = Messages(init_schedule_time = self.now,
                             send_only_during_daytime = True,
                             stop_time = self.later,
