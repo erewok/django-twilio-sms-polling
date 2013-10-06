@@ -16,17 +16,17 @@ def calculate_next_send(send_at, interval=False, day=True, UTC_offset=0):
     else:
         next_send = send_at + timedelta(hours=interval)
 
-    next_send -= timedelta(hours=UTC_offset) # if it's a negative number this can go into the next day...
+    next_send += timedelta(hours=UTC_offset) # if it's a negative number this can go into the next day...
 
     if day:
         utc_morning = 7 ## probably need to work with more than integers here...
         utc_night = 20
-        offset_morning = utc_morning - UTC_offset
-        offset_night = utc_night - UTC_offset
+        offset_morning = utc_morning + UTC_offset
+        offset_night = utc_night + UTC_offset
 
         ## now you need to adjust for if either number is less than one or greater than 24
 
-        While next_send.hour < morning or next_send.hour >= night:
+        while next_send.hour < offset_morning or next_send.hour >= offset_night:
             my_rand_int = random.randrange(600, 1020)
             next_send = send_at + timedelta(minutes=my_rand_int)
 
@@ -111,14 +111,19 @@ def send_scheduled_messages():
     now = timezone.now()
     end = now + timedelta(seconds=210) # for this to work,
     # it needs to spin up just  _AFTER_ this time interval
-    for scheduled_msg in Scheduler.objects.filter(send_at__gte=now).filter(send_at__lte=end):
+    for scheduled_msg in Scheduler.objects.filter(
+            send_at__gte=now
+            ).filter(
+                send_at__lte=end):
         if now < scheduled_msg.message_id.stop_time:
             send_sms(scheduled_msg.message_id)
             scheduled_msg.send_at = scheduled_msg.next_send
             # calculate next send
             interval = get_send_interval(scheduled_msg.message_id)
             day = scheduled_msg.message_id.send_only_during_daytime
-            scheduled_msg.next_send = calculate_next_send(scheduled_msg.send_at, interval=interval, day=day)
+            scheduled_msg.next_send = calculate_next_send(scheduled_msg.send_at,
+                                                          interval=interval,
+                                                          day=day)
             scheduled_msg.save()
 
         if scheduled_msg.message_id.send_once:
