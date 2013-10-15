@@ -15,10 +15,25 @@ class SchedulerTesting(TestCase):
         self.earlier = self.now - timedelta(hours=5)
         self.almost_night = self.now.replace(hour=19)
 
+        self.rcvr_offset1 = Receiver(phone_number = '+16195559088',
+                                  first_name = 'gym',
+                                  last_name = 'bag',
+                                  offset = -7)
+        self.rcvr_offset1.save()
+
+        self.rcvr_offset2 = Receiver(phone_number = '+16195559088',
+                                  first_name = 'gym',
+                                  last_name = 'bag',
+                                  offset = 7)
+        self.rcvr_offset2.save()
+
+
+
     def test_data_insert(self):
-        self.recvr_one = Receiver(phone_number='+16195559088',
-                                  first_name='gym',
-                                  last_name='bag')
+        self.recvr_one = Receiver(phone_number = '+16195559088',
+                                  first_name = 'gym',
+                                  last_name = 'bag',
+                                  offset = 0)
         self.recvr_one.save()
 
     def test_next_send_calculator(self):
@@ -39,7 +54,7 @@ class SchedulerTesting(TestCase):
         self.assertLess(next_send_wInterval.hour, 20)
         self.assertLess(next_send_randomInterval.hour, 20)
 
-        # Goal: It's not set to an hour before 7am
+        # Goal: It's not set to an hour before 8am
         self.assertGreaterEqual(next_send_wInterval.hour, 7)
         self.assertGreaterEqual(next_send_randomInterval.hour, 7)
 
@@ -53,12 +68,33 @@ class SchedulerTesting(TestCase):
         self.assertLess(next_send_once, self.now)
         #############################################################
 
-    def test_utc_offset_calculatr(self):
-        utc_offset1 = -8
-        utc_offset2 = -5
-        utc_offset3 = 4
-        utc_at_offset_time = self.now - timedelta(hours=utc_offset1)
-        offset_next_send = calculate_next_send(utc_at_offset_time, interval=False, day=True, UTC_offset=utc_offset1):
+    def test_utc_offset_calculator(self):
+        from sms_app.tasks import get_offset_range
+        offset1, offset1_allowed = -9, get_offset_range((8 - 9 + 24), 13)
+        offset2, offset2_allowed = -5, get_offset_range((8 - 5), 13)
+        offset3, offset3_allowed = 4, get_offset_range(4, 13)
+
+        one_at_offset = self.now + timedelta(hours=offset1)
+        offset_next_send1 = calculate_next_send(one_at_offset,
+                                               interval=False,
+                                               day=True,
+                                               UTC_offset=offset1)
+
+        self.assertTrue(offset_next_send1.hour in offset1_allowed)
+
+        two_at_offset = self.now + timedelta(hours=offset2)
+        offset_next_send2 = calculate_next_send(two_at_offset,
+                                               interval=False,
+                                               day=True,
+                                               UTC_offset=offset2)
+        self.assertTrue(offset_next_send2.hour in offset2_allowed)
+
+        three_at_offset = self.now + timedelta(hours=offset3)
+        offset_next_send3 = calculate_next_send(three_at_offset,
+                                               interval=False,
+                                               day=True,
+                                               UTC_offset=offset3)
+        self.assertTrue(offset_next_send3.hour in offset3_allowed)
 
 
     def test_scheduler(self):
@@ -68,6 +104,7 @@ class SchedulerTesting(TestCase):
                             stop_time = self.later,
                             send_is_on = True)
         self.test_msg_one.save()
+
         # Two should /not/ be scheduled because its stop time is in the past
         self.test_msg_two = Messages(init_schedule_time = self.now,
                     send_only_during_daytime = True,
@@ -82,6 +119,15 @@ class SchedulerTesting(TestCase):
                     stop_time = self.later,
                     send_once = True,
                     send_is_on = True)
+
+        self.test_msg_three.save()
+
+        self.test_msg_one.recipients.add(self.rcvr_offset1, self.rcvr_offset2)
+        self.test_msg_two.recipients.add(self.rcvr_offset1, self.rcvr_offset2)
+        self.test_msg_three.recipients.add(self.rcvr_offset1, self.rcvr_offset2)
+
+        self.test_msg_one.save()
+        self.test_msg_two.save()
         self.test_msg_three.save()
 
         schedule_new_messages() # should insert one and three.
@@ -107,6 +153,9 @@ class SchedulerTesting(TestCase):
                             stop_time = self.later,
                             send_is_on = True)
         test_msg_clean.save()
+        test_msg_clean.recipients.add(self.rcvr_offset1)
+        test_msg_clean.save()
+        
         schedule_new_messages()
         self.assertTrue(Scheduler.objects.filter(message_id=test_msg_clean).exists())
 
@@ -115,9 +164,8 @@ class SchedulerTesting(TestCase):
 
         cleanup_expired()
 
-        if test_cleaning.send_is_on is True:
+        if test_msg_clean.send_is_on is True:
             self.fail("Message is still set to send")
 
         with self.assertRaises(Scheduler.DoesNotExist):
             Scheduler.objects.get(message_id=test_msg_clean).exists()
-

@@ -11,10 +11,10 @@ class Receiver(models.Model):
     offset = models.SmallIntegerField(verbose_name="UTC Offset")
 
     def __unicode__(self):
-        return self.phone_number
+        return "%s with utc offset: %r" % (self.phone_number, self.offset)
 
     def __str__(self):
-        return "%s" % self.phone_number
+        return "%s with utc offset: %r" % (self.phone_number, self.offset)
 
 ### SMS LOGIC DATA ###
 
@@ -64,7 +64,7 @@ class Messages(models.Model):
     class Meta:
         verbose_name = u"Messages"
         verbose_name_plural = u"Messages"
-        
+
 class ResponseMessages(models.Model):
     active = models.BooleanField()
     response_message = models.CharField(max_length=160)
