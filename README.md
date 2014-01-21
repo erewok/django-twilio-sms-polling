@@ -41,15 +41,15 @@ and an account sid. There will also be a number assigned to your account in the 
 
 Keep this format in mind because you will need to use it to add receivers to your database.
 
-To add your Twilio Account details to your database and after setting-up your 
+To add your Twilio Account details to your database after setting-up your 
 Django project, do the following:
 
-   python manage.py syncdb
-   python manage.py shell
-   from twilio_polls_app.models import TwilioAcct
+    python manage.py syncdb
+    python manage.py shell
+    from twilio_polls_app.models import TwilioAcct
 
-   my_account = TwilioAcct(auth_token="{YOUR AUTH TOKEN}", account_side="{YOUR ACCOUNT SID"}, number="{NUMBER}")
-   my_account.save()
+    my_account = TwilioAcct(auth_token="{YOUR AUTH TOKEN}", account_side="{YOUR ACCOUNT SID"}, number="{NUMBER}")
+    my_account.save()
 
 Now your account details can be retrieved to verify incoming texts and to send outgoing
-messages via Twilio REST API
+messages via Twilio REST API.
