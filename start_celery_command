@@ -1,1 +1,1 @@
-python manage.py celeryd -B --settings=sms_survey.settings --loglevel=DEBUG
+python manage.py celeryd -B --settings=sms_survey.settings --loglevel=INFO
