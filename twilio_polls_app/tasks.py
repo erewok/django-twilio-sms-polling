@@ -6,8 +6,8 @@ from celery.task import task
 from datetime import timedelta
 from django.utils import timezone
 
-from .models import Messages, Scheduler
-from .send_messages.send_messages import send_sms
+from sms_app.models import Messages, Scheduler
+from sms_app.send_messages.send_messages import send_sms
 
 class SmartScheduler(object):
 
@@ -17,10 +17,10 @@ class SmartScheduler(object):
         ################################
         ## Message Attributes ##
         ################################
-        self.day_only = msg_instance.send_only_during_daytime
-        self.interval = msg_instance.send_interval
-        self.send_once = msg_instance.send_once
-        self.utc_offset = msg_instance.offset
+        self.day_only = self.msg_instance.send_only_during_daytime
+        self.interval = self.msg_instance.send_interval
+        self.send_once = self.msg_instance.send_once
+        self.utc_offset = self.msg_instance.offset
 
         ################################
         ## Day Settings ##
@@ -29,12 +29,6 @@ class SmartScheduler(object):
         self.day_length = 12 
         self.morning = 8
         self.allowed_hours = self._get_offset_range()
-
-        ################################
-        ## Scheduler Attributes ##
-        ################################
-
-        self.scheduled = False
 
     def _get_offset_range(self):
         """This method creates a defined interval of
