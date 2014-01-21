@@ -56,7 +56,7 @@ class Messages(models.Model):
                                                      verbose_name="Interval (hrs): Leave blank for random interval")
     stop_time = models.DateTimeField(null=True, blank=True, verbose_name="Message Expiry")
     recipients = models.ManyToManyField(Receiver)
-    message_body = models.TextField(null=True, blank=True, verbose_name="Message Body")
+    message_body = models.CharField(max_length=160, null=True, blank=True, verbose_name="Message Body")
     send_is_on = models.BooleanField(verbose_name="Message Activated")
 
     def _get_send_interval(self):
